@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { DocumentInput } from "@/components/DocumentInput";
 import { ResultsView } from "@/components/ResultsView";
 import { AnalyzingState } from "@/components/AnalyzingState";
-import { supabase } from "@/integrations/supabase/client";
+import { analyzeDocument, AnalysisResult } from "@/lib/gemini";
 import type { LegalAnalysis } from "@/types/analysis";
 import { toast } from "sonner";
 import { ArrowDown, FileText, Gavel, MessagesSquare, ShieldAlert, Sparkles } from "lucide-react";
@@ -35,29 +35,14 @@ const Index = () => {
     setStatus("loading");
     setAnalysis(null);
     try {
-      const { data, error } = await supabase.functions.invoke("analyze-document", {
-        body: { documentText, region },
-      });
-      if (error) {
-        // Try to surface specific edge errors nicely
-        const ctx = (error as { context?: { status?: number } })?.context;
-        if (ctx?.status === 429) {
-          toast.error("Busy right now", { description: "Too many requests. Try again in a minute." });
-        } else if (ctx?.status === 402) {
-          toast.error("AI quota reached", { description: "Add credits in Settings → Workspace → Usage." });
-        } else {
-          toast.error("Couldn't analyze", { description: error.message || "Please try again." });
-        }
-        setStatus("error");
-        return;
-      }
-      const a = (data as { analysis?: LegalAnalysis })?.analysis;
-      if (!a) {
+      const result = await analyzeDocument(documentText, "text/plain");
+      if (!result) {
         toast.error("Empty response", { description: "Please try again." });
         setStatus("error");
         return;
       }
-      setAnalysis(a);
+      // Map correctly to LegalAnalysis type
+      setAnalysis(result as unknown as LegalAnalysis);
       setStatus("done");
     } catch (err) {
       console.error(err);
