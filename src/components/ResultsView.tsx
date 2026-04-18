@@ -1,5 +1,8 @@
 import { useState } from "react";
 import type { LegalAnalysis } from "@/types/analysis";
+import { useAuth } from "@/hooks/useAuth";
+import { createNewChat, addMessageToChat } from "@/lib/db";
+import { useNavigate } from "react-router-dom";
 import { SeverityBadge } from "./SeverityBadge";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,6 +58,31 @@ const Section = ({
 export const ResultsView = ({ analysis, onReset }: ResultsViewProps) => {
   const [speaking, setSpeaking] = useState(false);
   const [copiedDraft, setCopiedDraft] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleContinueToChat = async () => {
+    try {
+      setIsSaving(true);
+      let currentUser = user;
+      if (!currentUser) {
+        const { signInWithPopup, GoogleAuthProvider } = await import("firebase/auth");
+        const { auth } = await import("@/lib/firebase");
+        const result = await signInWithPopup(auth, new GoogleAuthProvider());
+        currentUser = result.user;
+      }
+      if (!currentUser) return;
+      const chatId = await createNewChat(currentUser.uid, analysis.documentType, `Please analyze this document: ${analysis.documentType}`);
+      const reply = `Analysis Output:\n\nSummary: ${analysis.plainSummary}\n\nSuggested Action: ${analysis.nextSteps.join(" ")}`;
+      await addMessageToChat(chatId, "ai", reply);
+      navigate("/dashboard");
+    } catch (e) {
+      toast.error("Failed to transition to chat");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const speakSummary = () => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
@@ -227,6 +255,18 @@ export const ResultsView = ({ analysis, onReset }: ResultsViewProps) => {
           </p>
         </Section>
       )}
+
+      {/* Continue to Chat Action */}
+      <div className="flex flex-col items-center justify-center p-8 mt-4 mb-8 rounded-xl border border-accent/20 bg-card shadow-sm space-y-4">
+        <h3 className="text-2xl font-display font-semibold">Have follow-up questions?</h3>
+        <p className="text-sm text-muted-foreground text-center max-w-md">
+          Continue this conversation on your Dashboard. You can use text or Voice STS to ask CourtSense more detailed questions about this document.
+        </p>
+        <Button size="lg" variant="brass" onClick={handleContinueToChat} disabled={isSaving} className="gap-2 shadow-md hover:scale-105 transition-transform">
+          <MessagesSquare className="h-5 w-5" />
+          {isSaving ? "Saving..." : "Continue to Chat"}
+        </Button>
+      </div>
 
       {/* Disclaimer */}
       <div className="rounded-xl border border-border/70 bg-secondary/40 p-4 text-xs text-muted-foreground">
