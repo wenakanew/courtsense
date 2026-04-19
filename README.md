@@ -11,7 +11,7 @@
 <br>
 
 <p align="center">
-  <img src="public/favicon.ico" alt="CourtSense Logo" width="120" />
+  <img src="public/favicon.png" alt="CourtSense Logo" width="120" />
 </p>
 
 ---
