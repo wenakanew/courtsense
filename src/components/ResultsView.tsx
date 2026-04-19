@@ -18,6 +18,7 @@ import {
   Sparkles,
   Volume2,
   VolumeX,
+  MessagesSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 

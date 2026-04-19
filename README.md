@@ -18,7 +18,7 @@
 
 ## 🚀 The Problem
 
-When a normal person receives a court summons, an aggressive eviction notice, an employment contract, or a predatory demand letter, they are entirely overwhelmed. Legalese is intimidating by design. Without thousands of dollars for a retainer, the average individual has absolutely no idea what their rights are, what hidden risks exist in the document, or what their immediate next steps should be.
+When a normal person receives a court summons, an eviction notice, an employment contract, or a predatory demand letter, they are entirely overwhelmed. Legalese is intimidating by design. Without thousands of dollars for a retainer, the average individual has absolutely no idea what their rights are, what hidden risks exist in the document, or what their immediate next steps should be.
 
 ## 💡 Our Solution
 
@@ -30,7 +30,7 @@ The application utilizes **Google's Gemini 2.5 Pro** model to instantly rip thro
 - **Hidden Risks** (with exact quote citations and severity ratings).
 - **Your Rights** within the context of your specific geographical jurisdiction constraint.
 
-For follow-up questions, CourtSense provides a **Multimodal Live Audio (WebRtc) Voice Agent** powered by `gemini-2.5-flash-native-audio-latest`. Users can quite literally speak directly to their AI lawyer in real-time to ask follow up questions about the contract.
+For follow-up questions, CourtSense provides a **Multimodal Live Audio WebRtc Voice Agent** powered natively by Gemini. Users can quite literally speak directly to their AI lawyer in real-time to ask follow up questions about the contract.
 
 ---
 
@@ -59,7 +59,7 @@ This project isn't just a basic chat wrapper. We utilized the absolute cutting-e
 ### 1. Requirements
 - Node.js (v18+)
 - A Firebase Project (with Firestore and Google Sign-In enabled)
-- A Google Web AI Studio API Key (`AIzaSy...`)
+- A Google API Key (`AIzaSy...`)
 
 ### 2. Installation
 
@@ -81,16 +81,12 @@ VITE_GEMINI_API_KEY="AIzaSy...your_gemini_key_here..."
 VITE_FIREBASE_API_KEY="AIzaSy..."
 VITE_FIREBASE_AUTH_DOMAIN="your-app.firebaseapp.com"
 VITE_FIREBASE_PROJECT_ID="your-app"
-VITE_FIREBASE_STORAGE_BUCKET="your-app.firebasestorage.app"
-VITE_FIREBASE_MESSAGING_SENDER_ID="123456789"
-VITE_FIREBASE_APP_ID="1:123456789:web:abcdefg"
-VITE_FIREBASE_MEASUREMENT_ID="G-XXXXXX"
 ```
 
-> **Security Note:** Make sure you whitelist your localhost/production domain in your Google Cloud API Console and Firebase Auth settings!
+> **Security Note:** Make sure you whitelist your localhost/production domain in your Google/Firebase settings!
 
 ### 4. Firestore Security Rules
-Before running, you must deploy the exact rules to your Firebase Database to lock down user data privacy (since this is legal information!).
+Before running, you must deploy the exact rules to your Firebase Database to lock down user data privacy:
 
 ```javascript
 rules_version = '2';
@@ -98,10 +94,6 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    match /chats/{chatId} {
-      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
     }
   }
 }
@@ -112,9 +104,3 @@ Start the blazing fast Vite development server:
 ```bash
 npm run dev
 ```
-
----
-
-## ⚖️ Disclaimer
-
-**CourtSense AI can make mistakes.** This tool is intended for educational and foundational understanding purposes. It does absolutely not constitute formal legal representation or binding legal advice. Users facing active litigation should always seek counsel from a formally licensed attorney in their jurisdiction.
